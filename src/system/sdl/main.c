@@ -1317,7 +1317,7 @@ bool tic_sys_keyboard_text(char* text)
 #endif
 
     *text = platform.keyboard.text;
-    return true;
+    return *text != '\0';
 }
 
 #if defined(TOUCH_INPUT_SUPPORT)
