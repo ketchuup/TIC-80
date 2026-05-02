@@ -1058,26 +1058,55 @@ static const u32 KeyboardCodes[tic_keys_count] =
     #include "keycodes.inl"
 };
 
-static void handleKeydown(SDL_Keycode keycode, bool down, bool* state, bool* pressed)
+static void setKeyState(tic_key key, bool down, bool* state, bool* pressed)
 {
+    if(down && pressed)
+        pressed[key] = true;
+
+    state[key] = down;
+}
+
+#if defined(__TIC_ANDROID__)
+static tic_key getAndroidKeyByScancode(SDL_Scancode scancode)
+{
+    switch(scancode)
+    {
+    case SDL_SCANCODE_UP: return tic_key_up;
+    case SDL_SCANCODE_DOWN: return tic_key_down;
+    case SDL_SCANCODE_LEFT: return tic_key_left;
+    case SDL_SCANCODE_RIGHT: return tic_key_right;
+    default: return tic_key_unknown;
+    }
+}
+#endif
+
+static void handleKeydown(SDL_Keysym keysym, bool down, bool* state, bool* pressed)
+{
+#if defined(__TIC_ANDROID__)
+    tic_key androidKey = getAndroidKeyByScancode(keysym.scancode);
+
+    if(androidKey != tic_key_unknown)
+    {
+        setKeyState(androidKey, down, state, pressed);
+        return;
+    }
+#endif
+
     for(tic_key i = 0; i < COUNT_OF(KeyboardCodes); i++)
     {
-        if(KeyboardCodes[i] == keycode)
+        if(KeyboardCodes[i] == keysym.sym)
         {
-            if (down && pressed) {
-                pressed[i] = true;
-            }
-            state[i] = down;
+            setKeyState(i, down, state, pressed);
             break;
         }
     }
 
 #if defined(__TIC_ANDROID__)
-    if(keycode == SDLK_AC_BACK)
+    if(keysym.sym == SDLK_AC_BACK)
         state[tic_key_escape] = down;
 #elif defined(__TIC_MACOSX__)
     // SDLK_KP_ENTER is the equivalent of fn+enter on a Macbook keyboard
-    if(keycode == SDLK_KP_ENTER)
+    if(keysym.sym == SDLK_KP_ENTER)
         state[tic_key_insert] = down;
 #endif
 }
@@ -1237,13 +1266,13 @@ static void pollEvents()
 
 #if defined(TOUCH_INPUT_SUPPORT)
             platform.keyboard.touch.useText = false;
-            handleKeydown(event.key.keysym.sym, true, platform.keyboard.touch.state, NULL);
+            handleKeydown(event.key.keysym, true, platform.keyboard.touch.state, NULL);
 #endif
 
-            handleKeydown(event.key.keysym.sym, true, platform.keyboard.state, platform.keyboard.pressed);
+            handleKeydown(event.key.keysym, true, platform.keyboard.state, platform.keyboard.pressed);
             break;
         case SDL_KEYUP:
-            handleKeydown(event.key.keysym.sym, false, platform.keyboard.state, platform.keyboard.pressed);
+            handleKeydown(event.key.keysym, false, platform.keyboard.state, platform.keyboard.pressed);
             break;
         case SDL_KEYMAPCHANGED:
             studio_keymapchanged(platform.studio, detect_keyboard_layout());
