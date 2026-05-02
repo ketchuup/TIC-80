@@ -31,7 +31,8 @@ android {
                             "-DBUILD_EDITORS=ON",
                             "-DBUILD_SURF=ON",
                             "-DCMAKE_BUILD_TYPE=Release",
-                            "-DBUILD_WITH_ALL=ON"
+                            "-DBUILD_WITH_ALL=ON",
+                            "-DBUILD_WITH_RUBY=OFF"
             }
         }
     }
