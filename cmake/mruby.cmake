@@ -84,6 +84,12 @@ if(BUILD_WITH_RUBY)
 
     include(ExternalProject)
 
+    if(ANDROID AND CMAKE_ANDROID_API)
+        set(MRUBY_ANDROID_PLATFORM "android-${CMAKE_ANDROID_API}")
+    else()
+        set(MRUBY_ANDROID_PLATFORM "android-${CMAKE_SYSTEM_VERSION}")
+    endif()
+
     ExternalProject_Add(mruby_vendor
         SOURCE_DIR         ${MRUBY_DIR}
         CONFIGURE_COMMAND  ""
@@ -98,7 +104,7 @@ if(BUILD_WITH_RUBY)
                 "MRUBY_SYSROOT=${MRUBY_SYSROOT}"
                 "MRUBY_TOOLCHAIN=${MRUBY_TOOLCHAIN}"
                 "ANDROID_ARCH=${CMAKE_ANDROID_ARCH_ABI}"
-                "ANDROID_PLATFORM=android-${CMAKE_SYSTEM_VERSION}"
+                "ANDROID_PLATFORM=${MRUBY_ANDROID_PLATFORM}"
                 ${MRUBY_RAKE_EXTRA_OPTS}
         INSTALL_COMMAND    ""
         BUILD_BYPRODUCTS   ${MRUBY_LIB}
